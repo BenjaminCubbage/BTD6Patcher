@@ -20,4 +20,6 @@ message("Using game directory: ${Esc}[44m${BLOONSTD6_ROOT}${Esc}[0m.")
 message("This can be changed in CMakePresets.json")
 
 add_executable(main ./src/main.cpp)
-target_compile_definitions(main PUBLIC BLOONSTD6_ROOT="${BLOONSTD6_ROOT}")
+target_link_libraries(main PUBLIC kernel32)
+target_precompile_headers(main PRIVATE <windows.h>)
+target_compile_definitions(main PRIVATE BLOONSTD6_ROOT="${BLOONSTD6_ROOT}")
