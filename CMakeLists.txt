@@ -12,14 +12,19 @@ if(NOT BLOONSTD6_ROOT)
     message(FATAL_ERROR "Game root was not specified, did you forget --preset default?")
 endif()
 
-# Normalize path
-string(REGEX REPLACE "\\\\" "/" BLOONSTD6_ROOT "${BLOONSTD6_ROOT}")
-
+# Holy backslash batman
 string(ASCII 27 Esc)
 message("Using game directory: ${Esc}[44m${BLOONSTD6_ROOT}${Esc}[0m.")
 message("This can be changed in CMakePresets.json")
 
-add_executable(main ./src/main.cpp)
-target_link_libraries(main PUBLIC kernel32)
-target_precompile_headers(main PRIVATE <windows.h>)
-target_compile_definitions(main PRIVATE BLOONSTD6_ROOT="${BLOONSTD6_ROOT}")
+add_library(payload SHARED src/payload.cpp)
+target_link_libraries(payload PUBLIC kernel32)
+target_precompile_headers(payload PUBLIC <windows.h>)
+
+add_executable(bootstrapper ./src/bootstrapper.cpp)
+target_link_libraries(bootstrapper PRIVATE payload kernel32)
+target_precompile_headers(bootstrapper PRIVATE <windows.h>)
+target_compile_definitions(bootstrapper PRIVATE
+    "BLOONSTD6_ROOT=R\"(${BLOONSTD6_ROOT})\""
+    "PAYLOAD_DLL=R\"($<TARGET_FILE:payload>)\""
+    "KERNEL32_DLL=R\"($ENV{SystemRoot}\\System32\\kernel32.dll)\"")
